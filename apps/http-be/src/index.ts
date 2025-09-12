@@ -1,6 +1,7 @@
 import express from "express"
 import jwt from "jsonwebtoken"
 import { middleware } from "./middleware/auth.js";
+import { CreateRoomSchema, CreateUserSchema, SignInSchema } from "@repo/common/types"
 
 const JWT_TOKEN = process.env.JWT_TOKEN || "default_secret";
 
@@ -14,14 +15,21 @@ interface User {
 
 const users: User[] = [];
 
-app.post("/signup", (req, res)=> {
+app.post("/signup", (req, res) => {
     const { username, password } = req.body;
 
-    if (!username || !password) {
-        res.status(400).json({
-            message: "Username and Password missing"
+    const data = CreateUserSchema.safeParse(req.body)
+
+    if (!data.success) {
+        return res.json({
+            message: "Incorrect inputs"
         })
     }
+
+    users.push({
+        username,
+        password
+    })
 
     res.json({
         message: "Succesfully registered"
@@ -29,12 +37,15 @@ app.post("/signup", (req, res)=> {
 
 })
 
-app.post("/signin", (req, res)=> {
+app.post("/signin", (req, res) => {
     const { username, password } = req.body;
 
-    if (!username || !password) {
-        res.status(400).json({
-            message: "Username and Password missing"
+
+    const data = SignInSchema.safeParse(req.body)
+
+    if (!data.success) {
+        return res.json({
+            message: "Incorrect inputs"
         })
     }
 
@@ -58,7 +69,14 @@ app.post("/signin", (req, res)=> {
 
 })
 
-app.post("/room", middleware, (req,res)=>{
+app.post("/room", middleware, (req, res) => {
+    const data = CreateRoomSchema.safeParse(req.body)
+
+    if (!data.success) {
+        return res.json({
+            message: "Incorrect inputs"
+        })
+    }
     res.json({
         roomId: 123
     })

@@ -1,12 +1,12 @@
-import { WebSocketServer } from 'ws';
-import jwt from "jsonwebtoken";
+import { WebSocketServer } from "ws";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 const JWT_TOKEN = process.env.JWT_TOKEN || "default_secret";
 
 const wss = new WebSocketServer({ port: 8080 });
 
-wss.on('connection', function connection(ws, request) {
-  ws.on('error', console.error);
+wss.on("connection", (ws, request) => {
+  ws.on("error", console.error);
 
   const url = request.url;
   if (!url) {
@@ -23,16 +23,21 @@ wss.on('connection', function connection(ws, request) {
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_TOKEN) as { userId: string };
+    const decoded = jwt.verify(token, JWT_TOKEN) as JwtPayload;
+
+    if (!decoded || typeof decoded !== "object" || !decoded.userId) {
+      ws.close(1008, "Invalid payload");
+      return;
+    }
 
     console.log("User connected:", decoded.userId);
 
-    ws.on('message', function message(data) {
+    ws.on("message", (data) => {
       console.log("Received:", data.toString());
-      ws.send('pong');
+      ws.send("pong");
     });
-
-  } catch (err) {
+  } catch {
     ws.close(1008, "Invalid token");
   }
 });
+3
