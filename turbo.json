@@ -1,5 +1,10 @@
 {
   "$schema": "https://turborepo.com/schema.json",
+  "pipeline": {
+    "api": {
+      "env": ["JWT_TOKEN"]
+    }
+  },
   "ui": "tui",
   "tasks": {
     "build": {

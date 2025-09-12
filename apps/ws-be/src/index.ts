@@ -1,7 +1,13 @@
-import { WebSocketServer } from "ws";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import { WebSocketServer, WebSocket } from "ws";
+import { checkUser } from "./lib/auth-helper.js";
 
-const JWT_TOKEN = process.env.JWT_TOKEN || "default_secret";
+interface User {
+  ws: WebSocket,
+  userId: string,
+  rooms: string[]
+}
+
+const users: User[] = [];
 
 const wss = new WebSocketServer({ port: 8080 });
 
@@ -14,30 +20,39 @@ wss.on("connection", (ws, request) => {
     return;
   }
 
-  const queryParams = new URLSearchParams(url.split("?")[1] || "");
-  const token = queryParams.get("token");
+  const queryParams = new URLSearchParams(url.split("?")[1]);
+  const token = queryParams.get("token") || "";
+  const userId = checkUser(token)
 
-  if (!token) {
-    ws.close(1008, "Token not provided");
-    return;
+  if (userId == null) {
+    ws.close();
+    return
   }
 
-  try {
-    const decoded = jwt.verify(token, JWT_TOKEN) as JwtPayload;
+  users.push({
+    ws,
+    userId,
+    rooms: []
+  })
 
-    if (!decoded || typeof decoded !== "object" || !decoded.userId) {
-      ws.close(1008, "Invalid payload");
-      return;
+  ws.on("message", (data) => {
+    const parsedData = JSON.parse(data as unknown as string);
+
+    if (parsedData.type === "join-room") {
+      const user = users.find(x => x.ws === ws);
+      if (user) {
+        user.rooms.push(parsedData.roomId);
+      }
     }
 
-    console.log("User connected:", decoded.userId);
+    if(parsedData.type==="leave-room"){
+      const user = users.find(x => x.ws === ws);
+      if(!user){
+        return
+      }
 
-    ws.on("message", (data) => {
-      console.log("Received:", data.toString());
-      ws.send("pong");
-    });
-  } catch {
-    ws.close(1008, "Invalid token");
-  }
-});
-3
+      user.rooms = user?.rooms.filter(x=>x===parsedData.room)
+    }
+  });
+}
+);
