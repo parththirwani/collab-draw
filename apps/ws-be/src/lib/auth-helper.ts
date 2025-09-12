@@ -1,6 +1,6 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
 
-const JWT_TOKEN = process.env.JWT_TOKEN || "default_secret";
+const JWT_TOKEN = process.env.JWT_TOKEN || "super-secret-token";
 
 export function checkUser(token: string): string | null {
   if (!token) {

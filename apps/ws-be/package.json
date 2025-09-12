@@ -6,7 +6,7 @@
   "scripts": {
     "build": "bun tsc -b",
     "start": "bun dist/index.js",
-    "dev": "bunx tsc -b --watch & bun --watch dist/index.js"
+    "dev": "bun run build & bun start"
   },
   "devDependencies": {
     "@types/bun": "latest"
@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@repo/typescript-config": "workspace:*",
+    "@repo/db": "workspace:*",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/ws": "^8.18.1",
     "jsonwebtoken": "^9.0.2",

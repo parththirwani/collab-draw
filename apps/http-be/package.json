@@ -6,7 +6,7 @@
   "scripts": {
     "build": "bun tsc -b",
     "start": "bun dist/index.js",
-    "dev": "bunx tsc -b --watch & bun --watch dist/index.js"
+    "dev": "bun run build & bun start"
   },
   "devDependencies": {
     "@types/bun": "latest",
