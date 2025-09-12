@@ -1,85 +1,107 @@
-import express from "express"
-import jwt from "jsonwebtoken"
+import express from "express";
+import jwt from "jsonwebtoken";
 import { middleware } from "./middleware/auth.js";
-import { CreateRoomSchema, CreateUserSchema, SignInSchema } from "@repo/common/types"
+import { CreateRoomSchema, CreateUserSchema, SignInSchema } from "@repo/common/types";
+import { prismaClient } from "@repo/db/client";
+import bcrypt from "bcryptjs";
 
-const JWT_TOKEN = process.env.JWT_TOKEN || "default_secret";
 
-const app = express()
-app.use(express.json())
+const JWT_TOKEN = process.env.JWT_TOKEN || "super-secret-token";
 
-interface User {
-    username: string,
-    password: string
-}
+const app = express();
+app.use(express.json());
 
-const users: User[] = [];
+// SIGNUP
+app.post("/signup", async (req, res) => {
+  const { name, email, password } = req.body;
 
-app.post("/signup", (req, res) => {
-    const { username, password } = req.body;
-
-    const data = CreateUserSchema.safeParse(req.body)
-
+  try {
+    const data = CreateUserSchema.safeParse(req.body);
     if (!data.success) {
-        return res.json({
-            message: "Incorrect inputs"
-        })
+      return res.status(400).json({ message: "Incorrect inputs" });
     }
 
-    users.push({
-        username,
-        password
-    })
-
-    res.json({
-        message: "Succesfully registered"
-    })
-
-})
-
-app.post("/signin", (req, res) => {
-    const { username, password } = req.body;
-
-
-    const data = SignInSchema.safeParse(req.body)
-
-    if (!data.success) {
-        return res.json({
-            message: "Incorrect inputs"
-        })
+    const existing = await prismaClient.user.findUnique({ where: { email } });
+    if (existing) {
+      return res.status(400).json({ message: "User already exists" });
     }
 
-    const foundUser = users.find(
-        (u) => u.username === username && u.password === password
-    )
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await prismaClient.user.create({
+      data: { name, email, password: hashedPassword },
+    });
 
+    return res.status(201).json({
+      message: "User registered successfully",
+      userId: newUser.id,
+    });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// SIGNIN
+app.post("/signin", async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const data = SignInSchema.safeParse(req.body);
+    if (!data.success) {
+      return res.status(400).json({ message: "Incorrect inputs" });
+    }
+
+    const foundUser = await prismaClient.user.findUnique({ where: { email } });
     if (!foundUser) {
-        res.json({
-            message: "Incorrect credentials"
-        })
-    } else {
-        const token = jwt.sign({
-            username
-        }, JWT_TOKEN)
-        res.json({
-            token: token
-        })
+      return res.status(401).json({ message: "Incorrect credentials" });
     }
 
-
-})
-
-app.post("/room", middleware, (req, res) => {
-    const data = CreateRoomSchema.safeParse(req.body)
-
-    if (!data.success) {
-        return res.json({
-            message: "Incorrect inputs"
-        })
+    const isValid = await bcrypt.compare(password, foundUser.password);
+    if (!isValid) {
+      return res.status(401).json({ message: "Incorrect credentials" });
     }
-    res.json({
-        roomId: 123
-    })
-})
 
-app.listen(3000)
+    const token = jwt.sign(
+      { userId: foundUser.id, email: foundUser.email },
+      JWT_TOKEN,
+    );
+
+    return res.json({ token });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// CREATE ROOM
+app.post("/room", middleware, async (req, res) => {
+  try {
+    const parsed = CreateRoomSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ message: "Incorrect inputs" });
+    }
+
+    const newRoom = await prismaClient.room.create({
+      data: {
+        slug: parsed.data.name,
+        adminId: req.userId!, 
+      },
+    });
+
+    return res.status(201).json({
+      roomId: newRoom.id,
+      slug: newRoom.slug,
+    });
+  } catch (e: any) {
+    console.error(e);
+
+    if (e.code === "P2002") {
+      // Prisma unique constraint error
+      return res.status(409).json({ message: "Room slug already exists" });
+    }
+
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+app.listen(3000);
