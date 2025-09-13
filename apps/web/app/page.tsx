@@ -1,7 +1,7 @@
-import CanvasPage from "@/components/canvas/mainPage";
+import LandingPage from "@/components/landing/home";
 
 export default function Home() {
   return (
-    <CanvasPage/>
+    <LandingPage/>
   )
 }
