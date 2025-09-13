@@ -5,11 +5,13 @@ import { CreateRoomSchema, CreateUserSchema, SignInSchema } from "@repo/common/t
 import { prismaClient } from "@repo/db/client";
 import bcrypt from "bcryptjs";
 
+import cors from "cors";
 
 const JWT_TOKEN = process.env.JWT_TOKEN || "super-secret-token";
 
 const app = express();
 app.use(express.json());
+app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 
 // SIGNUP
 app.post("/signup", async (req, res) => {
@@ -132,4 +134,4 @@ app.get("/room/:slug", async(req,res)=>{
   })
 })
 
-app.listen(3000);
+app.listen(3001);
