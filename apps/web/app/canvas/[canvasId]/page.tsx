@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import CanvasPage from '@/components/canvas/mainPage';
+import CanvasPage from '@/components/canvas/canvasPage';
 
 export default function Canvas() {
   const router = useRouter();

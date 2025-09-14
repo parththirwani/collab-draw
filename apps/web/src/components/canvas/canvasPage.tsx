@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from 'react';
 import { Menu, Share, BookOpen } from 'lucide-react';
 import Sidebar from './sidebar';
@@ -12,10 +11,13 @@ export default function CanvasPage() {
 
   return (
     <div className="h-screen w-full text-white overflow-hidden relative" style={{ backgroundColor: '#111111' }}>
+      {/* Main Canvas - Full Page */}
+      <Canvas onCanvasClick={() => setSidebarOpen(false)} />
+      
       {/* Hamburger Menu Button */}
       <button
         onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="fixed top-4 left-4 z-50 p-2 rounded-lg hover:bg-gray-700 transition-colors" 
+        className="fixed top-4 left-4 z-50 p-2 rounded-lg hover:bg-gray-700 transition-colors"
         style={{ backgroundColor: '#232329' }}
       >
         <Menu size={20} />
@@ -38,21 +40,18 @@ export default function CanvasPage() {
       {/* Floating Toolbar */}
       <Toolbar />
 
-      {/* Main Canvas */}
-      <Canvas onCanvasClick={() => setSidebarOpen(false)} />
-
       {/* Zoom Controls */}
       <ZoomControls />
 
       {/* Scroll Back Button */}
-      <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2">
+      <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-40">
         <button className="px-4 py-2 rounded-lg text-sm transition-colors hover:bg-gray-700" style={{ backgroundColor: '#232329' }}>
           Scroll back to content
         </button>
       </div>
 
       {/* Help Icon - Bottom Right */}
-      <div className="fixed bottom-4 right-4 flex items-center gap-2">
+      <div className="fixed bottom-4 right-4 flex items-center gap-2 z-40">
         <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white" style={{ backgroundColor: '#403e6a' }}>
           ?
         </div>

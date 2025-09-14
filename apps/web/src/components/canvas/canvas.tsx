@@ -1,32 +1,34 @@
 "use client";
 
+import { initDraw } from "app/Canvas-logic/Canvas";
+import { useRef, useEffect, useState } from "react";
+
 interface CanvasProps {
   onCanvasClick: () => void;
 }
 
 export default function Canvas({ onCanvasClick }: CanvasProps) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    initDraw(canvasRef.current)
+
+  }, []);
+
+
   return (
-    <div 
-      className="h-full w-full relative" 
-      style={{ backgroundColor: '#111111' }}
+    <div
+      className="h-full w-full absolute inset-0"
+      style={{ backgroundColor: "#111111" }}
       onClick={onCanvasClick}
     >
-      {/* Canvas Grid Pattern */}
-      <div 
-        className="absolute inset-0 opacity-10"
-        style={{
-          backgroundImage: `
-            radial-gradient(circle, #ffffff 1px, transparent 1px)
-          `,
-          backgroundSize: '20px 20px'
-        }}
+      <canvas
+        ref={canvasRef}
+        className="h-full w-full absolute inset-0 cursor-crosshair"
       />
-      
-      {/* Main Drawing Area */}
-      <div className="h-full w-full relative overflow-hidden">
-        {/* This would be where the actual drawing canvas/SVG would go */}
-        <div className="absolute inset-0 cursor-crosshair" />
-      </div>
     </div>
   );
 }
