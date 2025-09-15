@@ -4,15 +4,19 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import CanvasPage from '@/components/canvas/canvasPage';
 
-export default function Canvas() {
+interface ClientCanvasPageProps {
+  roomId: string;
+}
+
+export default function ClientCanvasPage({ roomId }: ClientCanvasPageProps) {
   const router = useRouter();
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
-      router.push('/'); 
+      router.push('/');
     }
-  }, []);
+  }, [router]);
 
-  return <CanvasPage />;
+  return <CanvasPage roomId={roomId} />;
 }

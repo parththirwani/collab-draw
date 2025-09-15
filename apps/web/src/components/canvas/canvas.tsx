@@ -1,23 +1,20 @@
 "use client";
 
 import { initDraw } from "app/Canvas-logic/Canvas";
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect } from "react";
 
 interface CanvasProps {
   onCanvasClick: () => void;
+  roomId: string;
 }
 
-export default function Canvas({ onCanvasClick }: CanvasProps) {
+export default function Canvas({ onCanvasClick, roomId }: CanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    initDraw(canvasRef.current)
-
-  }, []);
-
+    if (!canvasRef.current) return;
+    initDraw(canvasRef.current, roomId);
+  }, [canvasRef]);
 
   return (
     <div
