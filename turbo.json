@@ -3,6 +3,9 @@
   "pipeline": {
     "api": {
       "env": ["JWT_TOKEN"]
+    },
+    "web": {
+      "env": ["NEXT_PUBLIC_HTTP_BACKEND", "JWT_TOKEN"]
     }
   },
   "ui": "tui",

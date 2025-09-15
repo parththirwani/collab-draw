@@ -106,21 +106,27 @@ app.post("/room", middleware, async (req, res) => {
   }
 });
 //GET CHATS OF A SINGLE ROOM USING roomId
-app.get("/chats/:roomId" , async (req,res) =>{
+app.get("/chats/:roomId", async (req, res) => {
   const roomId = Number(req.params.roomId);
-  const messages = await prismaClient.chat.findMany({
-    where : {
-      roomId: roomId
-    },
-    orderBy : {
-      id: "desc"
-    },
-    take: 50
-  });
-  res.json({
-    messages
-  })
-})
+
+  if (!req.params.roomId || isNaN(roomId)) {
+    return res.status(400).json({ message: "Invalid roomId" });
+  }
+
+  try {
+    const messages = await prismaClient.chat.findMany({
+      where: { roomId },
+      orderBy: { id: "desc" },
+      take: 50,
+    });
+
+    return res.json({ messages });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 //GET roomId using slug
 app.get("/room/:slug", async(req,res)=>{
   const slug = req.params.slug;
